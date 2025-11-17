@@ -59,7 +59,7 @@ char	*ft_strjoin(char *s1, char *s2)
 	}
 	str = malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
 	if (!str)
-		return (NULL);
+		return (free(s1), NULL);
 	i = -1;
 	j = 0;
 	while (s1[++i])

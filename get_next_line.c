@@ -12,28 +12,38 @@
 
 #include "get_next_line.h"
 
-char	*read_and_join(int fd, char *rest)
+static char	*read_loop(int fd, char *rest, char *buffer)
 {
-	char	*buffer;
-	int		bytes;
+	int	bytes;
 
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
-		return (NULL);
 	bytes = 1;
 	while (!ft_strchr(rest, '\n') && bytes > 0)
 	{
 		bytes = read(fd, buffer, BUFFER_SIZE);
 		if (bytes < 0)
 		{
-			free(buffer);
+			free(rest);
 			return (NULL);
 		}
 		buffer[bytes] = '\0';
 		rest = ft_strjoin(rest, buffer);
+		if (!rest)
+			return (NULL);
 	}
-	free(buffer);
 	return (rest);
+}
+
+char	*read_and_join(int fd, char *rest)
+{
+	char	*buffer;
+	char	*result;
+
+	buffer = malloc(BUFFER_SIZE + 1);
+	if (!buffer)
+		return (NULL);
+	result = read_loop(fd, rest, buffer);
+	free(buffer);
+	return (result);
 }
 
 char	*extract_line(char *rest)
@@ -68,12 +78,19 @@ char	*clean_rest(char *rest)
 	i++;
 	new_rest = ft_substr(rest, i, ft_strlen(rest) - i);
 	free(rest);
+	if (!new_rest)
+		return (NULL);
+	if (new_rest[0] == '\0')
+	{
+		free(new_rest);
+		return (NULL);
+	}
 	return (new_rest);
 }
 
 char	*get_next_line(int fd)
 {
-	static char	*rest;
+	static char	*rest = NULL;
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
